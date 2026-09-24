@@ -461,7 +461,7 @@ class _EventCard extends StatelessWidget {
         border: Border.all(color: border),
       ),
       child: Row(mainAxisSize: MainAxisSize.min, children: [
-        const PaaqIcon(PaaqIcons.checkIn, size: 15),
+        PaaqIcon(PaaqIcons.checkIn, size: 15, color: enabled ? null : fg),
         const SizedBox(width: 6),
         Text('Check in',
             style: TextStyle(
