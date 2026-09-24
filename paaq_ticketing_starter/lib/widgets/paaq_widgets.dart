@@ -243,7 +243,7 @@ class PaaqStat extends StatelessWidget {
             if (suffix != null) ...[
               const SizedBox(width: 5),
               Text(suffix!,
-                  style: TextStyle(
+                  style: const TextStyle(
                       fontFamily: PaaqText.family,
                       fontSize: 14,
                       fontWeight: FontWeight.w500,
@@ -360,6 +360,41 @@ class PaaqFilterChip extends StatelessWidget {
           const SizedBox(width: 6),
           Icon(Icons.keyboard_arrow_down_rounded, size: 16, color: fg),
         ]),
+      ),
+    );
+  }
+}
+
+/// A segmented tab pill (On sale / Upcoming / Past / Drafts) — plain, no
+/// dropdown caret. Distinct from [PaaqFilterChip], which is a dropdown
+/// trigger.
+class PaaqTabPill extends StatelessWidget {
+  final String label;
+  final bool active;
+  final VoidCallback? onTap;
+  const PaaqTabPill(this.label, {super.key, this.active = false, this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      borderRadius: BorderRadius.circular(9),
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 8),
+        decoration: BoxDecoration(
+          color: active ? PaaqColors.teal : PaaqColors.surface,
+          borderRadius: BorderRadius.circular(9),
+          border: active ? null : Border.all(color: PaaqColors.line),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            fontFamily: PaaqText.family,
+            fontSize: 13,
+            fontWeight: active ? FontWeight.w600 : FontWeight.w500,
+            color: active ? Colors.white : PaaqColors.filterInactiveFg,
+          ),
+        ),
       ),
     );
   }

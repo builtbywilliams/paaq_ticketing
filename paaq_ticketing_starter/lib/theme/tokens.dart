@@ -54,6 +54,21 @@ class PaaqColors {
   static const Color chipVipFg = Color(0xFF5B4BB7);
   static const Color chipVipBg = Color(0xFFEEEBFE);
 
+  // ---- Tickets-list "Single"/"Group" + availability chips (66748:51746) ----
+  static const Color chipSingleFg = Color(0xFF4B5563);
+  static const Color chipSingleBg = Color(0xFFEEF1F0);
+  static const Color freeEventFg = Color(0xFF0D9488);
+  static const Color freeEventBg = Color(0xFFF0FDFA);
+  static const Color availOnSaleFg = Color(0xFF059669);
+  static const Color availOnSaleBg = Color(0xFFECFDF5);
+  static const Color availSoldOutFg = Color(0xFFB45309);
+  static const Color availSoldOutBg = Color(0xFFFFFBEB);
+  static const Color availClosedFg = Color(0xFF6B7280);
+  static const Color availClosedBg = Color(0xFFF3F4F6);
+  static const Color walletIconBg = Color(0xFFE0F7F5);
+  static const Color checkInDisabledBg = Color(0xFFF7F9F8);
+  static const Color filterInactiveFg = Color(0xFF4A5654);
+
   // ---- Avatar palette (deterministic per person) ----
   static const List<Color> avatarPalette = [
     Color(0xFF6F2DBD),
@@ -128,6 +143,8 @@ class PaaqText {
   static TextStyle h1 = _base(26, FontWeight.w800, PaaqColors.textPrimary);
   static TextStyle h2 = _base(19, FontWeight.w700, PaaqColors.textPrimary);
   static TextStyle h3 = _base(16, FontWeight.w700, PaaqColors.textPrimary);
+  static TextStyle pageTitle =
+      _base(24, FontWeight.w700, PaaqColors.textPrimary, spacing: -0.2);
 
   // Body
   static TextStyle bodyStrong =

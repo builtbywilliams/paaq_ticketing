@@ -74,9 +74,237 @@ class EventDetail {
   });
 }
 
+/// A ticket-type row inside an event card's expandable table on the
+/// tickets list (distinct from [TicketTypeRow], which belongs to the
+/// ticket-detail Overview screen's table).
+class ListTicketTypeRow {
+  final String name;
+  final bool isGroup;
+  final String statusLabel; // 'On sale' | 'Sold out' | 'Closed' | 'Open'
+  final String soldText; // full row text, e.g. '18 of 30 sold'
+  final String price; // '₦5,000' or 'Free'
+  const ListTicketTypeRow({
+    required this.name,
+    required this.isGroup,
+    required this.statusLabel,
+    required this.soldText,
+    required this.price,
+  });
+}
+
+/// One event row on the tickets list (any tab).
+class EventListItem {
+  final String title;
+  final String typeLabel; // 'Multiple tickets' | 'Single ticket' | 'Group ticket'
+  final bool isFree;
+  final String dateLine;
+  final String? price; // shown only on single/group (non-multiple) cards
+  final String soldLabel; // 'Total sold' | 'Registered'
+  final String soldValue; // '31 of 55 sold' | '120 of 200'
+  final String revenueValue; // '₦640,000' or 'Free'
+  final bool checkInEnabled;
+  final bool viewPlural; // 'View tickets' vs 'View ticket'
+  final List<ListTicketTypeRow>? ticketTypeRows; // non-null => expandable
+  const EventListItem({
+    required this.title,
+    required this.typeLabel,
+    this.isFree = false,
+    required this.dateLine,
+    this.price,
+    required this.soldLabel,
+    required this.soldValue,
+    required this.revenueValue,
+    required this.checkInEnabled,
+    required this.viewPlural,
+    this.ticketTypeRows,
+  });
+}
+
 /// ---- Sample data for the Multiple-tickets event page (all-paid) ----
 class SampleData {
   SampleData._();
+
+  // ---- Tickets list — On sale tab (66748:51746) ----
+  static const List<EventListItem> onSaleEvents = [
+    EventListItem(
+      title: 'Breakfast with Thaton',
+      typeLabel: 'Multiple tickets',
+      dateLine: 'Sat, 2 Sep · 12:59 · Virtual',
+      soldLabel: 'Total sold',
+      soldValue: '31 of 55 sold',
+      revenueValue: '₦640,000',
+      checkInEnabled: true,
+      viewPlural: true,
+      ticketTypeRows: [
+        ListTicketTypeRow(
+            name: 'Regular',
+            isGroup: false,
+            statusLabel: 'On sale',
+            soldText: '18 of 30 sold',
+            price: '₦5,000'),
+        ListTicketTypeRow(
+            name: 'VIP',
+            isGroup: true,
+            statusLabel: 'Sold out',
+            soldText: '20 of 20 sold',
+            price: '₦20,000'),
+        ListTicketTypeRow(
+            name: 'Gold',
+            isGroup: false,
+            statusLabel: 'On sale',
+            soldText: '3 of 5 sold',
+            price: '₦50,000'),
+      ],
+    ),
+    EventListItem(
+      title: 'Product Design AMA',
+      typeLabel: 'Single ticket',
+      dateLine: 'Thu, 12 Sep · 18:00 · Lagos',
+      price: '₦2,500',
+      soldLabel: 'Total sold',
+      soldValue: '4 of 10 sold',
+      revenueValue: '₦25,000',
+      checkInEnabled: true,
+      viewPlural: false,
+    ),
+    EventListItem(
+      title: 'Founders Dinner',
+      typeLabel: 'Multiple tickets',
+      dateLine: 'Fri, 20 Sep · 19:30 · Cape Town',
+      soldLabel: 'Total sold',
+      soldValue: '24 of 30 sold',
+      revenueValue: '₦935,000',
+      checkInEnabled: false,
+      viewPlural: true,
+      ticketTypeRows: [
+        ListTicketTypeRow(
+            name: 'Seat',
+            isGroup: false,
+            statusLabel: 'On sale',
+            soldText: '18 of 24 sold',
+            price: '₦35,000'),
+        ListTicketTypeRow(
+            name: 'Table of 6',
+            isGroup: true,
+            statusLabel: 'On sale',
+            soldText: '1 of 1 sold',
+            price: '₦180,000'),
+        ListTicketTypeRow(
+            name: 'Early bird',
+            isGroup: false,
+            statusLabel: 'Closed',
+            soldText: '5 of 5 sold',
+            price: '₦25,000'),
+      ],
+    ),
+    EventListItem(
+      title: 'Growth Marketing Workshop',
+      typeLabel: 'Group ticket',
+      dateLine: 'Wed, 25 Sep · 10:00 · Virtual',
+      price: '₦8,000',
+      soldLabel: 'Total sold',
+      soldValue: '6 of 100 sold',
+      revenueValue: '₦48,000',
+      checkInEnabled: true,
+      viewPlural: false,
+    ),
+    EventListItem(
+      title: 'UX Research Clinic',
+      typeLabel: 'Multiple tickets',
+      dateLine: 'Tue, 8 Oct · 15:00 · Virtual',
+      soldLabel: 'Total sold',
+      soldValue: '12 of 40 sold',
+      revenueValue: '₦96,000',
+      checkInEnabled: false,
+      viewPlural: true,
+      ticketTypeRows: [
+        ListTicketTypeRow(
+            name: 'Standard',
+            isGroup: false,
+            statusLabel: 'On sale',
+            soldText: '9 of 30 sold',
+            price: '₦4,000'),
+        ListTicketTypeRow(
+            name: 'Priority',
+            isGroup: false,
+            statusLabel: 'On sale',
+            soldText: '3 of 10 sold',
+            price: '₦8,000'),
+      ],
+    ),
+    EventListItem(
+      title: 'Startup Pitch Night',
+      typeLabel: 'Single ticket',
+      dateLine: 'Sat, 19 Oct · 18:30 · Nairobi',
+      price: '₦1,500',
+      soldLabel: 'Total sold',
+      soldValue: '56 of 80 sold',
+      revenueValue: '₦140,000',
+      checkInEnabled: false,
+      viewPlural: false,
+    ),
+    EventListItem(
+      title: 'Community Design Meetup',
+      typeLabel: 'Multiple tickets',
+      isFree: true,
+      dateLine: 'Thu, 3 Oct · 17:00 · Lagos',
+      soldLabel: 'Registered',
+      soldValue: '64 of 150',
+      revenueValue: 'Free',
+      checkInEnabled: false,
+      viewPlural: true,
+      ticketTypeRows: [
+        ListTicketTypeRow(
+            name: 'General',
+            isGroup: false,
+            statusLabel: 'Open',
+            soldText: '48 of 100 registered',
+            price: 'Free'),
+        ListTicketTypeRow(
+            name: 'Team table',
+            isGroup: true,
+            statusLabel: 'Open',
+            soldText: '16 of 50 · 5 seats',
+            price: 'Free'),
+      ],
+    ),
+    EventListItem(
+      title: 'Intro to Product Design',
+      typeLabel: 'Single ticket',
+      isFree: true,
+      dateLine: 'Mon, 7 Oct · 16:00 · Virtual',
+      price: 'Free',
+      soldLabel: 'Registered',
+      soldValue: '120 of 200',
+      revenueValue: 'Free',
+      checkInEnabled: false,
+      viewPlural: false,
+    ),
+    EventListItem(
+      title: 'Team Offsite Mixer',
+      typeLabel: 'Group ticket',
+      isFree: true,
+      dateLine: 'Fri, 10 Oct · 18:00 · Lagos',
+      price: 'Free',
+      soldLabel: 'Registered',
+      soldValue: '18 of 60',
+      revenueValue: 'Free',
+      checkInEnabled: false,
+      viewPlural: false,
+    ),
+    EventListItem(
+      title: 'Design Systems Webinar',
+      typeLabel: 'Single ticket',
+      isFree: true,
+      dateLine: 'Sat, 18 Oct · 14:00 · Virtual',
+      price: 'Free',
+      soldLabel: 'Registered',
+      soldValue: '200 of 200',
+      revenueValue: 'Free',
+      checkInEnabled: false,
+      viewPlural: false,
+    ),
+  ];
 
   static const event = EventDetail(
     title: 'Breakfast with Thaton',

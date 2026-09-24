@@ -128,7 +128,7 @@ class _MultipleEventPageState extends State<MultipleEventPage> {
           ),
         );
     return Row(children: [
-      cell(PaaqStat(
+      cell(const PaaqStat(
           label: 'Total revenue',
           value: '₦640,000',
           valueColor: PaaqColors.statusCheckedInFg)),
