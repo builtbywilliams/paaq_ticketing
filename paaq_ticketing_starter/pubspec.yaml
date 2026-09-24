@@ -1,0 +1,32 @@
+name: paaq_ticketing
+description: PAAQ Events — ticketing prototype (Flutter web).
+publish_to: "none"
+version: 0.1.0
+
+environment:
+  sdk: ">=3.0.0 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  go_router: ^14.0.0 # screen-to-screen navigation for the clickable prototype
+
+dev_dependencies:
+  flutter_lints: ^4.0.0
+
+flutter:
+  uses-material-design: true
+  # Register Plus Jakarta Sans here once the font files are added under
+  # assets/fonts/. Until then the app falls back to the system sans-serif.
+  # fonts:
+  #   - family: Plus Jakarta Sans
+  #     fonts:
+  #       - asset: assets/fonts/PlusJakartaSans-Regular.ttf
+  #       - asset: assets/fonts/PlusJakartaSans-Medium.ttf
+  #         weight: 500
+  #       - asset: assets/fonts/PlusJakartaSans-SemiBold.ttf
+  #         weight: 600
+  #       - asset: assets/fonts/PlusJakartaSans-Bold.ttf
+  #         weight: 700
+  #       - asset: assets/fonts/PlusJakartaSans-ExtraBold.ttf
+  #         weight: 800
