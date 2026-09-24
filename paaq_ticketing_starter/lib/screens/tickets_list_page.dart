@@ -5,9 +5,10 @@ import '../theme/paaq_icons.dart';
 import '../widgets/paaq_widgets.dart';
 import '../data/models.dart';
 
-/// Which of the four tickets-list tabs is showing. Only [onSale] has its
-/// Figma frame built out (66748:51746); the others are routed and share the
-/// same header/KPI/toolbar shell but show a placeholder list for now.
+/// Which of the four tickets-list tabs is showing. [onSale] (66748:51746)
+/// and [upcoming] (66840:50386) have their Figma frames built out; [past]
+/// and [drafts] are routed and share the same header/KPI/toolbar shell but
+/// show a placeholder list for now.
 enum TicketsListTab { onSale, upcoming, past, drafts }
 
 extension on TicketsListTab {
@@ -112,6 +113,16 @@ class TicketsListPage extends StatelessWidget {
 
   // ---- List body ----
   Widget _list() {
+    if (tab == TicketsListTab.upcoming) {
+      return Column(
+        children: [
+          for (final e in SampleData.upcomingEvents) ...[
+            _UpcomingEventCard(item: e),
+            if (e != SampleData.upcomingEvents.last) const SizedBox(height: 16),
+          ],
+        ],
+      );
+    }
     if (tab != TicketsListTab.onSale) {
       return Container(
         width: double.infinity,
@@ -134,6 +145,260 @@ class TicketsListPage extends StatelessWidget {
         ],
       ],
     );
+  }
+}
+
+// ============================================================================
+// Shared pieces used by both _EventCard (On sale) and _UpcomingEventCard —
+// kept here at module scope so neither tab rebuilds its own copy.
+// ============================================================================
+
+const _cardTitleStyle = TextStyle(
+    fontFamily: PaaqText.family,
+    fontSize: 16,
+    fontWeight: FontWeight.w700,
+    letterSpacing: -0.2,
+    color: PaaqColors.textStrong);
+
+const _cardDateStyle = TextStyle(
+    fontFamily: PaaqText.family,
+    fontSize: 12,
+    fontWeight: FontWeight.w400,
+    color: PaaqColors.textBody);
+
+/// The 50x50 rounded-square icon badge that leads every event-list card.
+/// On-sale uses a teal gradient at 24px; Upcoming uses a flat tint at 22px.
+class EventThumbnail extends StatelessWidget {
+  final double iconSize;
+  final Gradient? gradient;
+  final Color? color;
+  const EventThumbnail({super.key, this.iconSize = 24, this.gradient, this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 50,
+      height: 50,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(12),
+        gradient: gradient,
+        color: gradient == null ? (color ?? PaaqColors.surface) : null,
+      ),
+      child: PaaqIcon(PaaqIcons.eventCalendar, size: iconSize),
+    );
+  }
+}
+
+/// A small pill badge — type chips, status pills, and the breakdown table's
+/// per-row Single/Group + status chips all render through this.
+class Pill extends StatelessWidget {
+  final String label;
+  final Color bg;
+  final Color fg;
+  final EdgeInsetsGeometry padding;
+  final FontWeight weight;
+  const Pill(this.label,
+      {super.key,
+      required this.bg,
+      required this.fg,
+      this.padding = const EdgeInsets.symmetric(horizontal: 9, vertical: 3),
+      this.weight = FontWeight.w600});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: padding,
+      decoration:
+          BoxDecoration(color: bg, borderRadius: BorderRadius.circular(PaaqRadii.pill)),
+      child: Text(label,
+          style: TextStyle(
+              fontFamily: PaaqText.family,
+              fontSize: 10,
+              fontWeight: weight,
+              color: fg)),
+    );
+  }
+}
+
+/// A label-over-value stat column (Price/Total sold/Revenue on On-sale;
+/// Sales open/Capacity on Upcoming).
+Widget statColumn(String label, String value, {bool big = false}) {
+  final isFreeValue = value == 'Free';
+  return Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    mainAxisSize: MainAxisSize.min,
+    children: [
+      Text(label,
+          style: const TextStyle(
+              fontFamily: PaaqText.family,
+              fontSize: 10,
+              fontWeight: FontWeight.w500,
+              letterSpacing: 0.3,
+              color: PaaqColors.textFaint)),
+      const SizedBox(height: 2),
+      Text(value,
+          style: TextStyle(
+              fontFamily: PaaqText.family,
+              fontSize: big ? 16 : 14,
+              fontWeight: big ? FontWeight.w700 : FontWeight.w600,
+              letterSpacing: big ? -0.2 : -0.1,
+              color: isFreeValue ? PaaqColors.freeEventFg : PaaqColors.textStrong)),
+    ],
+  );
+}
+
+/// Dot/chip colours for a ticket-type row's availability status — covers
+/// both On-sale's vocabulary (On sale/Sold out/Open/Closed) and Upcoming's
+/// (Not started).
+({Color dot, Color bg, Color fg}) statusColors(String status) {
+  return switch (status) {
+    'On sale' || 'Open' => (
+        dot: PaaqColors.availOnSaleFg,
+        bg: PaaqColors.availOnSaleBg,
+        fg: PaaqColors.availOnSaleFg
+      ),
+    'Sold out' => (
+        dot: PaaqColors.availSoldOutFg,
+        bg: PaaqColors.availSoldOutBg,
+        fg: PaaqColors.availSoldOutFg
+      ),
+    'Not started' => (
+        dot: PaaqColors.notStartedDotFg,
+        bg: PaaqColors.notStartedChipBg,
+        fg: PaaqColors.textMuted
+      ),
+    _ => (
+        dot: PaaqColors.availClosedFg,
+        bg: PaaqColors.availClosedBg,
+        fg: PaaqColors.availClosedFg
+      ),
+  };
+}
+
+/// The ticket-type breakdown table under a multi-type card. On-sale passes
+/// col2Header 'SOLD'/'REGISTERED'; Upcoming passes 'CAPACITY'.
+class TicketTypeBreakdownTable extends StatelessWidget {
+  final String col2Header;
+  final List<ListTicketTypeRow> rows;
+  const TicketTypeBreakdownTable(
+      {super.key, required this.col2Header, required this.rows});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      decoration: const BoxDecoration(
+        color: PaaqColors.pageBg,
+        border: Border(top: BorderSide(color: PaaqColors.line)),
+      ),
+      child: Column(
+        children: [
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 9),
+            decoration: const BoxDecoration(
+                border: Border(bottom: BorderSide(color: PaaqColors.line))),
+            child: Row(
+              children: [
+                SizedBox(width: 340, child: _colHeader('TICKET TYPE')),
+                SizedBox(width: 180, child: _colHeader(col2Header)),
+                SizedBox(width: 150, child: _colHeader('PRICE')),
+              ],
+            ),
+          ),
+          for (var i = 0; i < rows.length; i++)
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+              decoration: BoxDecoration(
+                border: i == 0
+                    ? null
+                    : const Border(top: BorderSide(color: PaaqColors.line)),
+              ),
+              child: Row(
+                children: [
+                  _dot(rows[i].statusLabel),
+                  const SizedBox(width: 10),
+                  SizedBox(
+                    width: 324,
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Flexible(
+                          child: Text(rows[i].name,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                  fontFamily: PaaqText.family,
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600,
+                                  color: PaaqColors.textStrong)),
+                        ),
+                        const SizedBox(width: 8),
+                        Pill(rows[i].isGroup ? 'Group' : 'Single',
+                            bg: rows[i].isGroup
+                                ? PaaqColors.chipVipBg
+                                : PaaqColors.chipSingleBg,
+                            fg: rows[i].isGroup
+                                ? PaaqColors.chipVipFg
+                                : PaaqColors.chipSingleFg,
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 8, vertical: 2),
+                            weight: FontWeight.w500),
+                        const SizedBox(width: 8),
+                        _statusPill(rows[i].statusLabel),
+                      ],
+                    ),
+                  ),
+                  SizedBox(
+                    width: 180,
+                    child: Text(rows[i].soldText,
+                        style: const TextStyle(
+                            fontFamily: PaaqText.family,
+                            fontSize: 13,
+                            fontWeight: FontWeight.w400,
+                            color: PaaqColors.textBody)),
+                  ),
+                  SizedBox(
+                    width: 150,
+                    child: Text(rows[i].price,
+                        style: TextStyle(
+                            fontFamily: PaaqText.family,
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                            color: rows[i].price == 'Free'
+                                ? PaaqColors.freeEventFg
+                                : PaaqColors.textStrong)),
+                  ),
+                ],
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _colHeader(String label) => Text(label,
+      style: const TextStyle(
+          fontFamily: PaaqText.family,
+          fontSize: 10,
+          fontWeight: FontWeight.w600,
+          letterSpacing: 0.4,
+          color: PaaqColors.textFaint));
+
+  Widget _dot(String status) {
+    final c = statusColors(status);
+    return Container(
+        width: 6,
+        height: 6,
+        decoration: BoxDecoration(color: c.dot, borderRadius: BorderRadius.circular(3)));
+  }
+
+  Widget _statusPill(String status) {
+    final c = statusColors(status);
+    return Pill(status,
+        bg: c.bg,
+        fg: c.fg,
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+        weight: FontWeight.w600);
   }
 }
 
@@ -327,19 +592,13 @@ class _EventCard extends StatelessWidget {
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                Container(
-                  width: 50,
-                  height: 50,
-                  alignment: Alignment.center,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(12),
-                    gradient: const LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [Color(0xFFDBF5F5), Color(0xFFC3ECEC)],
-                    ),
+                const EventThumbnail(
+                  iconSize: 24,
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [Color(0xFFDBF5F5), Color(0xFFC3ECEC)],
                   ),
-                  child: const PaaqIcon(PaaqIcons.eventCalendar, size: 24),
                 ),
                 const SizedBox(width: 14),
                 Expanded(
@@ -351,40 +610,32 @@ class _EventCard extends StatelessWidget {
                           Flexible(
                             child: Text(item.title,
                                 overflow: TextOverflow.ellipsis,
-                                style: const TextStyle(
-                                    fontFamily: PaaqText.family,
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w700,
-                                    letterSpacing: -0.2,
-                                    color: PaaqColors.textStrong)),
+                                style: _cardTitleStyle),
                           ),
                           const SizedBox(width: 9),
-                          _typeBadge(item.typeLabel),
+                          Pill(item.typeLabel,
+                              bg: PaaqColors.chipSingleBg,
+                              fg: PaaqColors.chipSingleFg),
                           if (item.isFree) ...[
                             const SizedBox(width: 8),
-                            _freeEventBadge(),
+                            const Pill('Free event',
+                                bg: PaaqColors.freeEventBg,
+                                fg: PaaqColors.freeEventFg),
                           ],
                         ],
                       ),
                       const SizedBox(height: 4),
-                      Text(item.dateLine,
-                          style: const TextStyle(
-                              fontFamily: PaaqText.family,
-                              fontSize: 12,
-                              fontWeight: FontWeight.w400,
-                              color: PaaqColors.textBody)),
+                      Text(item.dateLine, style: _cardDateStyle),
                     ],
                   ),
                 ),
                 if (item.price != null) ...[
-                  _stat('Price', item.price!),
+                  statColumn('Price', item.price!),
                   const SizedBox(width: 20),
                 ],
-                _stat(item.soldLabel, item.soldValue),
+                statColumn(item.soldLabel, item.soldValue),
                 const SizedBox(width: 20),
-                _stat(item.revenueValue == 'Free' ? 'Revenue' : 'Revenue',
-                    item.revenueValue,
-                    big: true),
+                statColumn('Revenue', item.revenueValue, big: true),
                 const SizedBox(width: 14),
                 _checkInButton(item.checkInEnabled),
                 const SizedBox(width: 10),
@@ -392,62 +643,14 @@ class _EventCard extends StatelessWidget {
               ],
             ),
           ),
-          if (item.ticketTypeRows != null) _table(item),
+          if (item.ticketTypeRows != null)
+            TicketTypeBreakdownTable(
+                col2Header: item.isFree ? 'REGISTERED' : 'SOLD',
+                rows: item.ticketTypeRows!),
         ],
       ),
     );
   }
-
-  Widget _stat(String label, String value, {bool big = false}) {
-    final isFreeValue = value == 'Free';
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Text(label,
-            style: const TextStyle(
-                fontFamily: PaaqText.family,
-                fontSize: 10,
-                fontWeight: FontWeight.w500,
-                letterSpacing: 0.3,
-                color: PaaqColors.textFaint)),
-        const SizedBox(height: 2),
-        Text(value,
-            style: TextStyle(
-                fontFamily: PaaqText.family,
-                fontSize: big ? 16 : 14,
-                fontWeight: big ? FontWeight.w700 : FontWeight.w600,
-                letterSpacing: big ? -0.2 : -0.1,
-                color: isFreeValue ? PaaqColors.freeEventFg : PaaqColors.textStrong)),
-      ],
-    );
-  }
-
-  Widget _typeBadge(String label) => Container(
-        padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3),
-        decoration: BoxDecoration(
-            color: PaaqColors.chipSingleBg,
-            borderRadius: BorderRadius.circular(PaaqRadii.pill)),
-        child: Text(label,
-            style: const TextStyle(
-                fontFamily: PaaqText.family,
-                fontSize: 10,
-                fontWeight: FontWeight.w600,
-                color: PaaqColors.chipSingleFg)),
-      );
-
-  Widget _freeEventBadge() => Container(
-        padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3),
-        decoration: BoxDecoration(
-            color: PaaqColors.freeEventBg,
-            borderRadius: BorderRadius.circular(PaaqRadii.pill)),
-        child: const Text('Free event',
-            style: TextStyle(
-                fontFamily: PaaqText.family,
-                fontSize: 10,
-                fontWeight: FontWeight.w600,
-                color: PaaqColors.freeEventFg)),
-      );
 
   Widget _checkInButton(bool enabled) {
     final bg = enabled ? PaaqColors.surface : PaaqColors.checkInDisabledBg;
@@ -489,150 +692,139 @@ class _EventCard extends StatelessWidget {
                 fontWeight: FontWeight.w600,
                 color: PaaqColors.textStrong)),
       );
+}
 
-  Widget _table(EventListItem item) {
-    final rows = item.ticketTypeRows!;
-    final col2Header = item.isFree ? 'REGISTERED' : 'SOLD';
+/// An Upcoming-tab event card (66840:50386): thumbnail + name + type chip +
+/// status pill, then Sales-open/Capacity stats and Open-sales/Edit actions.
+/// Multi-ticket events get the same breakdown table as On-sale, with a
+/// CAPACITY column and grey "Not started" rows.
+class _UpcomingEventCard extends StatelessWidget {
+  final UpcomingEventItem item;
+  const _UpcomingEventCard({required this.item});
+
+  @override
+  Widget build(BuildContext context) {
     return Container(
-      width: double.infinity,
-      decoration: const BoxDecoration(
-        color: PaaqColors.pageBg,
-        border: Border(top: BorderSide(color: PaaqColors.line)),
+      decoration: BoxDecoration(
+        color: PaaqColors.surface,
+        borderRadius: BorderRadius.circular(PaaqRadii.xl),
+        border: Border.all(color: PaaqColors.line),
+        boxShadow: PaaqShadows.card,
       ),
+      clipBehavior: Clip.antiAlias,
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 9),
-            decoration: const BoxDecoration(
-                border: Border(bottom: BorderSide(color: PaaqColors.line))),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
             child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                SizedBox(width: 340, child: _colHeader('TICKET TYPE')),
-                SizedBox(width: 180, child: _colHeader(col2Header)),
-                SizedBox(width: 150, child: _colHeader('PRICE')),
+                const EventThumbnail(
+                    iconSize: 22, color: PaaqColors.upcomingThumbBg),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Flexible(
+                            child: Text(item.title,
+                                overflow: TextOverflow.ellipsis,
+                                style: _cardTitleStyle),
+                          ),
+                          const SizedBox(width: 9),
+                          Pill(item.typeLabel,
+                              bg: PaaqColors.chipSingleBg,
+                              fg: PaaqColors.chipSingleFg),
+                          const SizedBox(width: 8),
+                          Pill(item.statusLabel,
+                              bg: item.statusIsTeal
+                                  ? PaaqColors.upcomingOpenBg
+                                  : PaaqColors.chipSingleBg,
+                              fg: item.statusIsTeal
+                                  ? PaaqColors.tealDark
+                                  : PaaqColors.chipSingleFg),
+                        ],
+                      ),
+                      const SizedBox(height: 4),
+                      Text(item.dateLine, style: _cardDateStyle),
+                    ],
+                  ),
+                ),
+                SizedBox(
+                    width: 126,
+                    child: statColumn('Sales open', item.salesOpenValue)),
+                const SizedBox(width: 20),
+                SizedBox(
+                    width: 84,
+                    child: statColumn('Capacity', item.capacityValue)),
+                const SizedBox(width: 14),
+                const _OpenSalesButton(),
+                const SizedBox(width: 10),
+                const _EditButton(),
               ],
             ),
           ),
-          for (var i = 0; i < rows.length; i++)
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-              decoration: BoxDecoration(
-                border: i == 0
-                    ? null
-                    : const Border(top: BorderSide(color: PaaqColors.line)),
-              ),
-              child: Row(
-                children: [
-                  _statusDot(rows[i].statusLabel),
-                  const SizedBox(width: 10),
-                  SizedBox(
-                    width: 324,
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Flexible(
-                          child: Text(rows[i].name,
-                              overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(
-                                  fontFamily: PaaqText.family,
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w600,
-                                  color: PaaqColors.textStrong)),
-                        ),
-                        const SizedBox(width: 8),
-                        _rowTypeChip(rows[i].isGroup),
-                        const SizedBox(width: 8),
-                        _availabilityChip(rows[i].statusLabel),
-                      ],
-                    ),
-                  ),
-                  SizedBox(
-                    width: 180,
-                    child: Text(rows[i].soldText,
-                        style: const TextStyle(
-                            fontFamily: PaaqText.family,
-                            fontSize: 13,
-                            fontWeight: FontWeight.w400,
-                            color: PaaqColors.textBody)),
-                  ),
-                  SizedBox(
-                    width: 150,
-                    child: Text(rows[i].price,
-                        style: TextStyle(
-                            fontFamily: PaaqText.family,
-                            fontSize: 13,
-                            fontWeight: FontWeight.w600,
-                            color: rows[i].price == 'Free'
-                                ? PaaqColors.freeEventFg
-                                : PaaqColors.textStrong)),
-                  ),
-                ],
-              ),
-            ),
+          if (item.ticketTypeRows != null)
+            TicketTypeBreakdownTable(
+                col2Header: 'CAPACITY', rows: item.ticketTypeRows!),
         ],
       ),
     );
   }
+}
 
-  Widget _colHeader(String label) => Text(label,
-      style: const TextStyle(
-          fontFamily: PaaqText.family,
-          fontSize: 10,
-          fontWeight: FontWeight.w600,
-          letterSpacing: 0.4,
-          color: PaaqColors.textFaint));
+/// The teal-text "Open sales" outlined action on an Upcoming card.
+class _OpenSalesButton extends StatelessWidget {
+  const _OpenSalesButton();
 
-  Widget _statusDot(String status) {
-    final color = switch (status) {
-      'On sale' || 'Open' => PaaqColors.availOnSaleFg,
-      'Sold out' => PaaqColors.availSoldOutFg,
-      _ => PaaqColors.availClosedFg,
-    };
+  @override
+  Widget build(BuildContext context) {
     return Container(
-        width: 6,
-        height: 6,
-        decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(3)));
-  }
-
-  Widget _rowTypeChip(bool isGroup) => Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-        decoration: BoxDecoration(
-            color: isGroup ? PaaqColors.chipVipBg : PaaqColors.chipSingleBg,
-            borderRadius: BorderRadius.circular(PaaqRadii.pill)),
-        child: Text(isGroup ? 'Group' : 'Single',
-            style: TextStyle(
-                fontFamily: PaaqText.family,
-                fontSize: 10,
-                fontWeight: FontWeight.w500,
-                color: isGroup ? PaaqColors.chipVipFg : PaaqColors.chipSingleFg)),
-      );
-
-  Widget _availabilityChip(String status) {
-    final Color fg, bg;
-    switch (status) {
-      case 'On sale':
-      case 'Open':
-        fg = PaaqColors.availOnSaleFg;
-        bg = PaaqColors.availOnSaleBg;
-        break;
-      case 'Sold out':
-        fg = PaaqColors.availSoldOutFg;
-        bg = PaaqColors.availSoldOutBg;
-        break;
-      default:
-        fg = PaaqColors.availClosedFg;
-        bg = PaaqColors.availClosedBg;
-    }
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-      decoration:
-          BoxDecoration(color: bg, borderRadius: BorderRadius.circular(PaaqRadii.pill)),
-      child: Text(status,
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
+      decoration: BoxDecoration(
+        color: PaaqColors.surface,
+        borderRadius: BorderRadius.circular(PaaqRadii.md),
+        border: Border.all(color: PaaqColors.line),
+      ),
+      child: const Text('Open sales',
           style: TextStyle(
               fontFamily: PaaqText.family,
-              fontSize: 10,
+              fontSize: 13,
               fontWeight: FontWeight.w600,
-              color: fg)),
+              color: PaaqColors.tealDark)),
+    );
+  }
+}
+
+/// The outlined "Edit" action (edit-pencil.svg + label) on an Upcoming card.
+class _EditButton extends StatelessWidget {
+  const _EditButton();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      decoration: BoxDecoration(
+        color: PaaqColors.surfaceSubtle,
+        borderRadius: BorderRadius.circular(PaaqRadii.md),
+        border: Border.all(color: PaaqColors.line),
+      ),
+      child: const Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          PaaqIcon(PaaqIcons.editPencil, size: 15),
+          SizedBox(width: 6),
+          Text('Edit',
+              style: TextStyle(
+                  fontFamily: PaaqText.family,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: PaaqColors.textStrong)),
+        ],
+      ),
     );
   }
 }

@@ -120,6 +120,28 @@ class EventListItem {
   });
 }
 
+/// One event row on the Upcoming tickets tab (66840:50386).
+class UpcomingEventItem {
+  final String title;
+  final String typeLabel; // 'Multiple tickets' | 'Single ticket' | 'Group ticket'
+  final String statusLabel; // 'Opens in N days' | 'Ready to sell'
+  final bool statusIsTeal; // true => teal-tint pill, false => neutral pill
+  final String dateLine;
+  final String salesOpenValue; // 'Opens Fri, 20 Oct' | 'Not scheduled'
+  final String capacityValue; // '300 seats' | '40 tables'
+  final List<ListTicketTypeRow>? ticketTypeRows; // non-null => expandable
+  const UpcomingEventItem({
+    required this.title,
+    required this.typeLabel,
+    required this.statusLabel,
+    required this.statusIsTeal,
+    required this.dateLine,
+    required this.salesOpenValue,
+    required this.capacityValue,
+    this.ticketTypeRows,
+  });
+}
+
 /// ---- Sample data for the Multiple-tickets event page (all-paid) ----
 class SampleData {
   SampleData._();
@@ -303,6 +325,95 @@ class SampleData {
       revenueValue: 'Free',
       checkInEnabled: false,
       viewPlural: false,
+    ),
+  ];
+
+  // ---- Tickets list — Upcoming tab (66840:50386) ----
+  static const List<UpcomingEventItem> upcomingEvents = [
+    UpcomingEventItem(
+      title: 'Design Leadership Summit',
+      typeLabel: 'Multiple tickets',
+      statusLabel: 'Opens in 5 days',
+      statusIsTeal: true,
+      dateLine: 'Sat, 25 Oct · 09:00 · Lagos',
+      salesOpenValue: 'Opens Fri, 20 Oct',
+      capacityValue: '300 seats',
+      ticketTypeRows: [
+        ListTicketTypeRow(
+            name: 'General',
+            isGroup: false,
+            statusLabel: 'Not started',
+            soldText: '200 seats',
+            price: '₦8,000'),
+        ListTicketTypeRow(
+            name: 'VIP',
+            isGroup: true,
+            statusLabel: 'Not started',
+            soldText: '20 seats',
+            price: '₦25,000'),
+        ListTicketTypeRow(
+            name: 'Student',
+            isGroup: false,
+            statusLabel: 'Not started',
+            soldText: '80 seats',
+            price: '₦4,000'),
+      ],
+    ),
+    UpcomingEventItem(
+      title: 'PAAQ Founders Brunch',
+      typeLabel: 'Single ticket',
+      statusLabel: 'Ready to sell',
+      statusIsTeal: false,
+      dateLine: 'Sun, 2 Nov · 11:00 · Virtual',
+      salesOpenValue: 'Not scheduled',
+      capacityValue: '80 seats',
+    ),
+    UpcomingEventItem(
+      title: 'Product Strategy Masterclass',
+      typeLabel: 'Single ticket',
+      statusLabel: 'Opens in 19 days',
+      statusIsTeal: true,
+      dateLine: 'Wed, 12 Nov · 17:00 · Lagos',
+      salesOpenValue: 'Opens Mon, 3 Nov',
+      capacityValue: '120 seats',
+    ),
+    UpcomingEventItem(
+      title: 'Community Demo Day',
+      typeLabel: 'Group ticket',
+      statusLabel: 'Ready to sell',
+      statusIsTeal: false,
+      dateLine: 'Fri, 21 Nov · 15:00 · Cape Town',
+      salesOpenValue: 'Not scheduled',
+      capacityValue: '40 tables',
+    ),
+    UpcomingEventItem(
+      title: 'Year-End Networking Gala',
+      typeLabel: 'Multiple tickets',
+      statusLabel: 'Opens in 41 days',
+      statusIsTeal: true,
+      dateLine: 'Sat, 13 Dec · 18:00 · Lagos',
+      salesOpenValue: 'Opens Mon, 1 Dec',
+      capacityValue: '500 seats',
+      ticketTypeRows: [
+        ListTicketTypeRow(
+            name: 'Standard',
+            isGroup: false,
+            statusLabel: 'Not started',
+            soldText: '350 seats',
+            price: '₦10,000'),
+        ListTicketTypeRow(
+            name: 'Premium',
+            isGroup: false,
+            statusLabel: 'Not started',
+            soldText: '120 seats',
+            price: '₦20,000'),
+        ListTicketTypeRow(
+            name: 'Table of 10',
+            isGroup: true,
+            statusLabel: 'Not started',
+            soldText: '30 seats',
+            price: '₦180,000'),
+      ],
     ),
   ];
 

@@ -69,6 +69,12 @@ class PaaqColors {
   static const Color checkInDisabledBg = Color(0xFFF7F9F8);
   static const Color filterInactiveFg = Color(0xFF4A5654);
 
+  // ---- Upcoming tab (66840:50386) ----
+  static const Color upcomingOpenBg = Color(0xFFE0F6F5);
+  static const Color upcomingThumbBg = Color(0xFFE7F7F6);
+  static const Color notStartedDotFg = Color(0xFF9CA3AF);
+  static const Color notStartedChipBg = Color(0xFFF0F2F2);
+
   // ---- Avatar palette (deterministic per person) ----
   static const List<Color> avatarPalette = [
     Color(0xFF6F2DBD),
