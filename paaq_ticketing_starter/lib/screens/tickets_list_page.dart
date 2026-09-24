@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../theme/tokens.dart';
+import '../theme/paaq_icons.dart';
 import '../widgets/paaq_widgets.dart';
 import '../data/models.dart';
 
@@ -82,18 +83,9 @@ class TicketsListPage extends StatelessWidget {
             ],
           ),
         ),
-        PaaqButton(
-          label: 'Withdraw',
-          icon: Icons.file_download_outlined,
-          onPressed: () => _openWithdraw(context),
-        ),
+        _WithdrawButton(onPressed: () => _openWithdraw(context)),
         const SizedBox(width: 12),
-        PaaqButton(
-          label: 'Create ticket',
-          icon: Icons.add_rounded,
-          variant: PaaqButtonVariant.primary,
-          onPressed: () {},
-        ),
+        _CreateTicketButton(onPressed: () {}),
       ],
     );
   }
@@ -145,100 +137,172 @@ class TicketsListPage extends StatelessWidget {
   }
 }
 
-/// The account-level KPI row shared by all four tickets-list tabs (66748:51776):
-/// 4 plain stat tiles + the "Available to withdraw / Next payout" tile, all
-/// equal height.
-class TicketsKpiHeader extends StatelessWidget {
-  const TicketsKpiHeader({super.key});
+/// The Withdraw button in the tickets-list header (66834:50386): white bg,
+/// 1.3px border, ink text/icon — distinct from PaaqButton's variants.
+class _WithdrawButton extends StatelessWidget {
+  final VoidCallback onPressed;
+  const _WithdrawButton({required this.onPressed});
 
   @override
   Widget build(BuildContext context) {
-    return IntrinsicHeight(
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Expanded(child: _statTile('Total revenue', '₦1,597,500')),
-          const SizedBox(width: 16),
-          Expanded(child: _statTile('Total tickets sold', '64 of 225')),
-          const SizedBox(width: 16),
-          Expanded(child: _statTile('Checked in', '12')),
-          const SizedBox(width: 16),
-          Expanded(child: _statTile('Active events', '4')),
-          const SizedBox(width: 16),
-          Expanded(child: _walletTile()),
-        ],
+    return Material(
+      color: PaaqColors.surface,
+      borderRadius: BorderRadius.circular(PaaqRadii.md),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(PaaqRadii.md),
+        onTap: onPressed,
+        child: Container(
+          padding: const EdgeInsets.fromLTRB(16, 11, 18, 11),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(PaaqRadii.md),
+            border: Border.all(color: PaaqColors.line, width: 1.3),
+          ),
+          child: const Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              PaaqIcon(PaaqIcons.withdrawArrow, size: 17),
+              SizedBox(width: 8),
+              Text('Withdraw',
+                  style: TextStyle(
+                      fontFamily: PaaqText.family,
+                      fontSize: 14.5,
+                      fontWeight: FontWeight.w600,
+                      color: PaaqColors.textPrimary)),
+            ],
+          ),
+        ),
       ),
     );
   }
+}
 
-  Widget _tileContainer({required Widget child, double verticalPadding = 16}) {
+/// The teal "+ Create ticket" button (66748:51773).
+class _CreateTicketButton extends StatelessWidget {
+  final VoidCallback onPressed;
+  const _CreateTicketButton({required this.onPressed});
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: PaaqColors.teal,
+      borderRadius: BorderRadius.circular(PaaqRadii.md),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(PaaqRadii.md),
+        onTap: onPressed,
+        child: Container(
+          padding: const EdgeInsets.fromLTRB(16, 11, 18, 11),
+          child: const Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              PaaqIcon(PaaqIcons.plus, size: 16, color: Colors.white),
+              SizedBox(width: 8),
+              Text('Create ticket',
+                  style: TextStyle(
+                      fontFamily: PaaqText.family,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white)),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// One KPI tile — white card, 0.5px border, radius 14. Used for all 5 tiles
+/// in the tickets-list header so they can't drift apart again; the 5th tile
+/// passes [footer] for its extra "Next payout" line.
+class KpiTile extends StatelessWidget {
+  final String label;
+  final String value;
+  final Widget? footer;
+  const KpiTile(
+      {super.key, required this.label, required this.value, this.footer});
+
+  @override
+  Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 18, vertical: verticalPadding),
+      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 15),
       decoration: BoxDecoration(
         color: PaaqColors.surface,
         borderRadius: BorderRadius.circular(14),
         border: Border.all(color: PaaqColors.line, width: 0.5),
       ),
-      child: child,
-    );
-  }
-
-  Widget _statTile(String label, String value) {
-    return _tileContainer(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Text(label, style: _labelStyle),
+          Text(label,
+              style: const TextStyle(
+                  fontFamily: PaaqText.family,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w500,
+                  color: PaaqColors.textMuted)),
           const SizedBox(height: 6),
-          Text(value, style: _valueStyle),
+          Text(value,
+              style: const TextStyle(
+                  fontFamily: PaaqText.family,
+                  fontSize: 24,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: -0.3,
+                  color: PaaqColors.textPrimary)),
+          if (footer != null) ...[
+            const SizedBox(height: 6),
+            footer!,
+          ],
         ],
       ),
     );
   }
+}
 
-  Widget _walletTile() {
-    return _tileContainer(
-      verticalPadding: 15,
-      child: const Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.center,
+/// The account-level KPI row shared by all four tickets-list tabs (66748:51776):
+/// 4 plain stat tiles + the "Available to withdraw / Next payout" tile, all
+/// equal height, all built from the one [KpiTile] widget.
+class TicketsKpiHeader extends StatelessWidget {
+  const TicketsKpiHeader({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return const IntrinsicHeight(
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text('Available to withdraw', style: _labelStyle),
-          SizedBox(height: 6),
-          Text('₦1,412,500', style: _valueStyle),
-          SizedBox(height: 6),
-          Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(Icons.calendar_today_outlined,
-                  size: 13, color: PaaqColors.tealDark),
-              SizedBox(width: 5),
-              Text('Next payout · Fri, 3 Oct',
-                  style: TextStyle(
-                      fontFamily: PaaqText.family,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                      color: PaaqColors.tealDark)),
-            ],
+          Expanded(
+              child: KpiTile(label: 'Total revenue', value: '₦1,597,500')),
+          SizedBox(width: 16),
+          Expanded(
+              child:
+                  KpiTile(label: 'Total tickets sold', value: '64 of 225')),
+          SizedBox(width: 16),
+          Expanded(child: KpiTile(label: 'Checked in', value: '12')),
+          SizedBox(width: 16),
+          Expanded(child: KpiTile(label: 'Active events', value: '4')),
+          SizedBox(width: 16),
+          Expanded(
+            child: KpiTile(
+              label: 'Available to withdraw',
+              value: '₦1,412,500',
+              footer: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  PaaqIcon(PaaqIcons.calendarSm, size: 13),
+                  SizedBox(width: 5),
+                  Text('Next payout · Fri, 3 Oct',
+                      style: TextStyle(
+                          fontFamily: PaaqText.family,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: PaaqColors.tealDark)),
+                ],
+              ),
+            ),
           ),
         ],
       ),
     );
   }
-
-  static const _labelStyle = TextStyle(
-      fontFamily: PaaqText.family,
-      fontSize: 13,
-      fontWeight: FontWeight.w500,
-      color: PaaqColors.textMuted);
-
-  static const _valueStyle = TextStyle(
-      fontFamily: PaaqText.family,
-      fontSize: 24,
-      fontWeight: FontWeight.w700,
-      letterSpacing: -0.3,
-      color: PaaqColors.textPrimary);
 }
 
 class _EventCard extends StatelessWidget {
@@ -275,8 +339,7 @@ class _EventCard extends StatelessWidget {
                       colors: [Color(0xFFDBF5F5), Color(0xFFC3ECEC)],
                     ),
                   ),
-                  child: const Icon(Icons.confirmation_number_outlined,
-                      size: 24, color: PaaqColors.tealDark),
+                  child: const PaaqIcon(PaaqIcons.eventCalendar, size: 24),
                 ),
                 const SizedBox(width: 14),
                 Expanded(
@@ -398,7 +461,7 @@ class _EventCard extends StatelessWidget {
         border: Border.all(color: border),
       ),
       child: Row(mainAxisSize: MainAxisSize.min, children: [
-        Icon(Icons.qr_code_scanner_rounded, size: 15, color: fg),
+        const PaaqIcon(PaaqIcons.checkIn, size: 15),
         const SizedBox(width: 6),
         Text('Check in',
             style: TextStyle(

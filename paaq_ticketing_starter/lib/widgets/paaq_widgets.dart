@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../theme/tokens.dart';
+import '../theme/paaq_icons.dart';
 
 /// ============================================================================
 /// PAAQ reusable widget library (ticketing).
@@ -414,7 +415,7 @@ class PaaqSearchField extends StatelessWidget {
         border: Border.all(color: PaaqColors.line),
       ),
       child: Row(children: [
-        const Icon(Icons.search_rounded, size: 16, color: PaaqColors.textFaint),
+        const PaaqIcon(PaaqIcons.search, size: 15),
         const SizedBox(width: 9),
         Text(hint, style: PaaqText.body.copyWith(color: PaaqColors.textFaint)),
       ]),
