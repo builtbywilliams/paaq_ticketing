@@ -50,7 +50,7 @@ class TicketsListPage extends StatelessWidget {
                     children: [
                       _header(context),
                       const SizedBox(height: 24),
-                      _kpiRow(),
+                      const TicketsKpiHeader(),
                       const SizedBox(height: 24),
                       _toolbarRow(context),
                       const SizedBox(height: 24),
@@ -102,132 +102,6 @@ class TicketsListPage extends StatelessWidget {
     // Withdraw modal (66835:50386) is built separately — placeholder for now.
   }
 
-  // ---- KPI row: 4 stat tiles + wallet card, all equal height ----
-  Widget _kpiRow() {
-    return IntrinsicHeight(
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Expanded(child: _statTile('Total revenue', '₦1,597,500')),
-          const SizedBox(width: 16),
-          Expanded(child: _statTile('Total tickets sold', '64 of 225')),
-          const SizedBox(width: 16),
-          Expanded(child: _statTile('Checked in', '12')),
-          const SizedBox(width: 16),
-          Expanded(child: _statTile('Active events', '4')),
-          const SizedBox(width: 16),
-          Expanded(child: _walletTile()),
-        ],
-      ),
-    );
-  }
-
-  Widget _statTile(String label, String value) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
-      decoration: BoxDecoration(
-        color: PaaqColors.surface,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: PaaqColors.line, width: 0.5),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text(label,
-              style: const TextStyle(
-                  fontFamily: PaaqText.family,
-                  fontSize: 13,
-                  fontWeight: FontWeight.w500,
-                  color: PaaqColors.textMuted)),
-          const SizedBox(height: 6),
-          Text(value,
-              style: const TextStyle(
-                  fontFamily: PaaqText.family,
-                  fontSize: 24,
-                  fontWeight: FontWeight.w700,
-                  letterSpacing: -0.3,
-                  color: PaaqColors.textPrimary)),
-        ],
-      ),
-    );
-  }
-
-  Widget _walletTile() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
-      decoration: BoxDecoration(
-        color: PaaqColors.surface,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: PaaqColors.line, width: 0.5),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Row(
-            children: [
-              Container(
-                width: 36,
-                height: 36,
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                    color: PaaqColors.walletIconBg,
-                    borderRadius: BorderRadius.circular(10)),
-                child: const Icon(Icons.account_balance_wallet_outlined,
-                    size: 19, color: PaaqColors.tealDark),
-              ),
-              const SizedBox(width: 11),
-              const Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('Available to withdraw',
-                        style: TextStyle(
-                            fontFamily: PaaqText.family,
-                            fontSize: 12,
-                            fontWeight: FontWeight.w500,
-                            color: PaaqColors.textMuted)),
-                    SizedBox(height: 2),
-                    Text('₦1,412,500',
-                        style: TextStyle(
-                            fontFamily: PaaqText.family,
-                            fontSize: 20,
-                            fontWeight: FontWeight.w800,
-                            color: PaaqColors.textPrimary)),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Container(height: 1, color: PaaqColors.lineSoft),
-          const SizedBox(height: 12),
-          const Row(
-            children: [
-              Icon(Icons.calendar_today_outlined,
-                  size: 13, color: PaaqColors.textMuted),
-              SizedBox(width: 6),
-              Text('Next payout',
-                  style: TextStyle(
-                      fontFamily: PaaqText.family,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w500,
-                      color: PaaqColors.textMuted)),
-              SizedBox(width: 4),
-              Text('Fri, 3 Oct',
-                  style: TextStyle(
-                      fontFamily: PaaqText.family,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                      color: PaaqColors.tealDark)),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
   // ---- Toolbar: search + On sale/Upcoming/Past/Drafts tabs ----
   Widget _toolbarRow(BuildContext context) {
     return Row(
@@ -269,6 +143,102 @@ class TicketsListPage extends StatelessWidget {
       ],
     );
   }
+}
+
+/// The account-level KPI row shared by all four tickets-list tabs (66748:51776):
+/// 4 plain stat tiles + the "Available to withdraw / Next payout" tile, all
+/// equal height.
+class TicketsKpiHeader extends StatelessWidget {
+  const TicketsKpiHeader({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return IntrinsicHeight(
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Expanded(child: _statTile('Total revenue', '₦1,597,500')),
+          const SizedBox(width: 16),
+          Expanded(child: _statTile('Total tickets sold', '64 of 225')),
+          const SizedBox(width: 16),
+          Expanded(child: _statTile('Checked in', '12')),
+          const SizedBox(width: 16),
+          Expanded(child: _statTile('Active events', '4')),
+          const SizedBox(width: 16),
+          Expanded(child: _walletTile()),
+        ],
+      ),
+    );
+  }
+
+  Widget _tileContainer({required Widget child, double verticalPadding = 16}) {
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 18, vertical: verticalPadding),
+      decoration: BoxDecoration(
+        color: PaaqColors.surface,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: PaaqColors.line, width: 0.5),
+      ),
+      child: child,
+    );
+  }
+
+  Widget _statTile(String label, String value) {
+    return _tileContainer(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(label, style: _labelStyle),
+          const SizedBox(height: 6),
+          Text(value, style: _valueStyle),
+        ],
+      ),
+    );
+  }
+
+  Widget _walletTile() {
+    return _tileContainer(
+      verticalPadding: 15,
+      child: const Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text('Available to withdraw', style: _labelStyle),
+          SizedBox(height: 6),
+          Text('₦1,412,500', style: _valueStyle),
+          SizedBox(height: 6),
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.calendar_today_outlined,
+                  size: 13, color: PaaqColors.tealDark),
+              SizedBox(width: 5),
+              Text('Next payout · Fri, 3 Oct',
+                  style: TextStyle(
+                      fontFamily: PaaqText.family,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: PaaqColors.tealDark)),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  static const _labelStyle = TextStyle(
+      fontFamily: PaaqText.family,
+      fontSize: 13,
+      fontWeight: FontWeight.w500,
+      color: PaaqColors.textMuted);
+
+  static const _valueStyle = TextStyle(
+      fontFamily: PaaqText.family,
+      fontSize: 24,
+      fontWeight: FontWeight.w700,
+      letterSpacing: -0.3,
+      color: PaaqColors.textPrimary);
 }
 
 class _EventCard extends StatelessWidget {
