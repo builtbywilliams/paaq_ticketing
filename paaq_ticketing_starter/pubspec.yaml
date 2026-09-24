@@ -10,12 +10,15 @@ dependencies:
   flutter:
     sdk: flutter
   go_router: ^14.0.0 # screen-to-screen navigation for the clickable prototype
+  flutter_svg: ^2.0.10 # renders the exact vector icons exported from Figma
 
 dev_dependencies:
   flutter_lints: ^4.0.0
 
 flutter:
   uses-material-design: true
+  assets:
+    - assets/icons/
   fonts:
     - family: Plus Jakarta Sans
       fonts:
